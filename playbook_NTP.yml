@@ -1,0 +1,33 @@
+---
+#NTP is a cross-plateform protocol designed to synchronize the clock of computer over a network, here it is the installation of NTP package using playbook
+
+
+- hosts: localhost
+  become: yes
+  tasks:
+   - name: Install NTP Package on server machine
+     yum: name=chrony state=present
+
+   - name: start and enable chrony
+     service: name=chronyd state=started enabled=yes
+
+   - name: Allow NTP on Firewall
+     firewalld: service=ntp permanent=yes state=enabled
+
+   - name: Restart Service firewalld
+     service: name=firewalld state=restarted
+
+# Go to /etc/chrony.conf and find the line “allow NTP client access from local notwork” then to the next line “ alow 192.168.40.0/24”,where  192.168.40.0 is your network address, 24 is the subnet then restart DEAMOND ( NTP server)      
+
+
+- hosts: client1
+  become: yes
+  tasks:
+   - name: Install NTP Package
+     yum: name=chrony state=present
+
+   - name: start and enable chrony
+     service: name=chronyd state=started enabled=yes
+
+#Go to /etc/chrony.conf and add “server <hostname-of-ntpServer or IP> iburst” below the line start with #pool then restart DEAMOND ( NTP server)
+

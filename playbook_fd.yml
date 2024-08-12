@@ -1,0 +1,13 @@
+---
+
+  
+- hosts: all
+  become: yes
+  tasks:
+  - name: create file
+    file: path=/home/ansible/file2 state=touch mode=777 owner=ansible group=ansible
+  - name: Creates directory
+    ansible.builtin.file: path=/home/ansible/dir2 state=directory mode=666 owner=ansible group=ansible 
+    
+      
+

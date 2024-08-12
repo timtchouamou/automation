@@ -1,0 +1,22 @@
+---
+
+
+- hosts: all
+  become: yes
+  tasks:
+   
+
+  - name: Install HTTPD
+    yum: name=httpd state=present
+
+  - name: Start and  Enable during boot
+    service: name=httpd state=started enabled=yes
+  
+  - name: allow HTTP on Firewall
+    firewalld: service=http permanent=yes state=enabled
+
+  - name: Restart Service firewalld
+    service: name=firewalld state=restarted   
+
+  - name: Update /var/www/html/index.html
+    shell: echo "This is my first ansible website" > /var/www/html/index.html    

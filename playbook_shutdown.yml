@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+   - name: shutdow the server
+     community.general.shutdown: delay=0

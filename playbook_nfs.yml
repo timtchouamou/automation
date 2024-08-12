@@ -1,0 +1,76 @@
+---
+# how to configure NFS on server machine using playbook
+
+- hosts: localhost
+  become: yes
+  tasks:
+
+
+  - name: install nfs-utils on server machine
+    yum: name=nfs-utils state=present
+
+  - name: Start and enable nfs-server,nfs-utils and rpcbind on server machine
+    service: name=nfs-server name=nfs-utils name=rpcbind state=started enabled=yes
+
+
+  - name: allow on firewall nfs
+    firewalld: service=nfs  permanent=yes state=enabled
+
+
+  - name: allow on firewall mountd
+    firewalld: service=mountd permanent=yes state=enabled
+
+
+  - name: allow on firewall rpc-bind
+    firewalld: service=rpc-bind  permanent=yes state=enabled
+
+
+  - name: Restart firewalld service to keep those services permanent
+    service: name=firewalld state=restarted
+
+  - name:  Check to Make sure SELinux is in enforcing mode
+    shell: cat /etc/selinux/config | grep -i ^SELINUX
+
+
+
+  - name:  Create nfs-share directory and give full permission
+    ansible.builtin.file: path=/nfs-share state=directory mode=777
+
+  - name: Modify the /etc/exports file by adding client information requested
+    shell: echo "/nfs-share   192.168.40.35(rw,sync,no_root_squash)" > /etc/exports
+
+  - name: verify the exported share diectory has been taking in consideration
+    shell: exportfs -av
+
+#  - name: verify the exported share diectory has been taking in consideration
+#    shell: showmount -e
+
+  - name: restart  nfs-server to keep all the modification
+    service: name=nfs-server  state=restarted
+
+
+# how to configure nfs on client1 machine
+
+- hosts: client1
+  become: yes
+  tasks:
+
+
+  - name: install nfs-utils on client machine
+    yum: name=nfs-utils state=present
+
+  - name: Start and enable nfs-server
+    service: name=nfs-server state=started enabled=yes
+
+  - name: verify that client machine can see the share directory
+    shell: sudo showmount -e server    
+
+
+  - name:  Create the mount point where nfs-share directory will be mounted
+    ansible.builtin.file: path=/nfs-client state=directory
+
+  - name: Add the mount point in fstable with nfs file system to make it permanent
+    mount: path=/nfs-client src=192.168.40.60:/nfs-share fstype=nfs state=present
+
+  - name: Mount the mount point
+    shell: sudo  mount -a
